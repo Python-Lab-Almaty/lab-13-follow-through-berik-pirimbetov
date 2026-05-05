@@ -56,7 +56,7 @@ def load_or_create_positions(name):
     obstacles = []
     sizes = [(60, 150), (150, 60), (100, 100), (80, 200), (200, 80), (120, 120)]
     
-    for i in range(8):
+    for i in range(12):
         while True:
             x = random.randint(-450, 450)
             y = random.randint(-280, 280)
@@ -133,7 +133,7 @@ start, goal, impassable_obstacles = load_or_create_positions(student_name)
 screen = turtle.Screen()
 screen.setup(WIDTH, HEIGHT)
 screen.title(f"Red Riding Hood Mission - {student_name}")
-screen.bgcolor("white")
+screen.bgcolor("lightblue")
 screen.tracer(0)
 
 # ----------------------------
@@ -141,7 +141,7 @@ screen.tracer(0)
 # ----------------------------
 hero = turtle.Turtle()
 hero.shape("circle")
-hero.color("red")
+hero.color("blue")
 hero.penup()
 hero.goto(start)
 hero.shapesize(2, 2)
@@ -156,12 +156,14 @@ dynamic_obstacles = []
 # ----------------------------
 steps = 0
 penalties = 0
+lives = 3
 
 # ----------------------------
 # 🟢 СКОРОСТЬ
 # ----------------------------
-vx = 3
-vy = 3
+vx = 5
+vy = 5
+boost = False
 
 # ----------------------------
 # 🟢 РЕЖИМ
@@ -271,8 +273,12 @@ def draw_all():
     score_drawer.goto(0, -HEIGHT//2 + 40)
     score = steps - penalties
     score_drawer.clear()
-    score_drawer.write(f"Steps: {steps} | Penalties: {penalties} | Score: {score}",
+    score_drawer.write(f"Lives: {lives} | Steps: {steps} | Penalties: {penalties} | Score: {score}",
                        align="center", font=("Arial", 16, "bold"))
+    current_time = time.time() - start_time
+    score_drawer.goto(0, -HEIGHT//2 + 10)
+    score_drawer.write(f"Time: {int(current_time)} sec",
+                   align="center", font=("Arial", 14, "normal"))
     
     screen.update()
 
@@ -307,7 +313,8 @@ def check_collision():
 # ----------------------------
 def up():
     global steps
-    hero.sety(hero.ycor() + vy)
+    speed = vy * (2 if boost else 1)
+    hero.sety(hero.ycor() + speed)
     steps += 1
     
     log.append({
@@ -371,6 +378,16 @@ screen.onkey(down, "s")
 screen.onkey(left, "a")
 screen.onkey(right, "d")
 screen.onkey(reset_session, "r")
+def enable_boost():
+    global boost
+    boost = True
+
+def disable_boost():
+    global boost
+    boost = False
+
+screen.onkeypress(enable_boost, "Shift_L")
+screen.onkeyrelease(disable_boost, "Shift_L")
 
 # ----------------------------
 # 🟢 ОСНОВНОЙ ЦИКЛ
@@ -421,6 +438,7 @@ while True:
         print("🎯 Reached B! RETURN TO A!")
         print(f"🟢 Теперь будут появляться препятствия!")
         going_forward = False
+        hero.color("yellow")
         
         log.append({
             "event": "reached_goal_B",
